@@ -9,6 +9,12 @@ bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
 
 
+# @dp.message_handler()
+# async def filter_messages(message: types.Message):
+#     if "плохое_слово" in message.text:
+#         await message.delete()
+
+
 @dp.message_handler()
 async def echo(message: types.Message):
     if 'погода' or 'weather' in message.text.lower():
@@ -27,14 +33,19 @@ async def get_weather_func(text):
     else:
         data = json.loads(response_get_weather.content)
         print(data)
+        beautiful_city_name = data['name']
         temp = round(data['main']['temp'] - 273.15)
         feels_like = round(data['main']['feels_like'] - 273.15)
-        mess = presentation(temp, feels_like, text)
+        mess = presentation(temp, feels_like, beautiful_city_name)
         return mess
 
 
-def presentation(temp, feels_like, text):
-    return f'{text}\nЗараз температура {temp} градусів\nВідчувається як {feels_like}'
+def presentation(temp, feels_like, beautiful_city_name):
+    if temp > 0:
+        temp = f'+{str(temp)}'
+    if feels_like > 0:
+        feels_like = f'+{str(feels_like)}'
+    return f'{beautiful_city_name}\nЗараз температура {temp} градусів\nВідчувається як {feels_like}'
 
 
 if __name__ == "__main__":
