@@ -17,13 +17,18 @@ dp = Dispatcher(bot)
 
 @dp.message_handler()
 async def echo(message: types.Message):
-    if 'погода' or 'weather' in message.text.lower():
+    if 'погода' in message.text.lower():
         text = message.text.split()
         for _ in text:
             _ = _.replace(',', '').replace('.', '').replace(':', '').replace(';', '').replace('"', '').replace("'", '')
             if _.lower() != 'погода':
-                if _.lower() != 'weather':
-                    await message.answer(await get_weather_func(_))
+                await message.answer(await get_weather_func(_))
+    elif 'weather' in message.text.lower():
+        text = message.text.split()
+        for _ in text:
+            _ = _.replace(',', '').replace('.', '').replace(':', '').replace(';', '').replace('"', '').replace("'", '')
+            if _.lower() != 'weather':
+                await message.answer(await get_weather_func(_))
 
 
 async def get_weather_func(text):
