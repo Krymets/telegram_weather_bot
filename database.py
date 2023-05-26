@@ -6,3 +6,6 @@ class DataBase:
 
     def connect(self):
         pass
+
+    def create(self):
+        pass
