@@ -9,12 +9,6 @@ bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
 
 
-# @dp.message_handler()
-# async def filter_messages(message: types.Message):
-#     if "плохое_слово" in message.text:
-#         await message.delete()
-
-
 @dp.message_handler()
 async def echo(message: types.Message):
     if 'погода' in message.text.lower():
