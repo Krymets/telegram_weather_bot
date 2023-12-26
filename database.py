@@ -5,7 +5,8 @@ from config import host, password, db_name, user
 
 class DataBase:
     def __init__(self):
-        pass
+        self.cursor = None
+        self.conn = None
 
     def connect(self):
         self.conn = psycopg2.connect(
