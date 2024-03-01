@@ -23,7 +23,7 @@ async def echo(message: types.Message):
 async def get_weather_func(text):
     response_get_weather = requests.get(config.weather_api.format(city=text))
     if response_get_weather.status_code != 200:
-        return 'Вибач, але такого міста я не знаю :('
+        return 'Вибач, але такого міста я не знаю'
     else:
         data = json.loads(response_get_weather.content)
         print(data)
