@@ -1,5 +1,5 @@
 import psycopg2
-from config import host, password, db_name, user
+from config import *
 
 
 class DataBase:
