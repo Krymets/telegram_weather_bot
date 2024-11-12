@@ -23,7 +23,7 @@ async def echo(message: types.Message):
 async def get_weather_func(text):
     response_get_weather = requests.get(config.weather_api.format(city=text))
     if response_get_weather.status_code != 200:
-        return 'Вибач, але такого міста я не знаю'
+        return "Sorry, but I don't know such a city"
     else:
         data = json.loads(response_get_weather.content)
         print(data)
@@ -39,7 +39,7 @@ def presentation(temp, feels_like, beautiful_city_name):
         temp = f'+{str(temp)}'
     if feels_like > 0:
         feels_like = f'+{str(feels_like)}'
-    return f'{beautiful_city_name}\nЗараз температура {temp} градусів\nВідчувається як {feels_like}'
+    return f'{beautiful_city_name}\nThe temperature now {temp} degrees\nFeels like {feels_like}'
 
 
 if __name__ == "__main__":
