@@ -8,17 +8,31 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
 
-w = ['погода', 'weather']
+# List of keywords
+keywords = ['weather', 'forecast', 'погода']
+
+
+# Function to clean text by removing punctuation and converting to lowercase
+def clean_text(word: str) -> str:
+    return word.translate(str.maketrans('', '', ',.:;"\'')).lower()
+
 
 @dp.message_handler()
 async def echo(message: types.Message):
-    for i in w:
-        if i in message.text.lower():
-            text = message.text.split()
-            for _ in text:
-                _ = _.replace(',', '').replace('.', '').replace(':', '').replace(';', '').replace('"', '').replace("'", '')
-                if _.lower() != i:
-                    await message.answer(await get_weather_func(_))
+    # Split the message text into words and clean them
+    words = [clean_text(word) for word in message.text.split()]
+
+    # Check if any of the keywords are in the message
+    for keyword in keywords:
+        if keyword in words:
+            # Remove the keyword and process the remaining words
+            other_words = [word for word in words if word != keyword]
+
+            # Call the weather function for each remaining word
+            for word in other_words:
+                response = await get_weather_func(word)
+                await message.answer(response)
+
 
 async def get_weather_func(text):
     response_get_weather = requests.get(config.weather_api.format(city=text))
