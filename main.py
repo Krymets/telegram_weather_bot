@@ -34,26 +34,42 @@ async def echo(message: types.Message):
                 await message.answer(response)
 
 
-async def get_weather_func(text):
-    response_get_weather = requests.get(config.weather_api.format(city=text))
-    if response_get_weather.status_code != 200:
-        return "Sorry, but I don't know such a city"
-    else:
-        data = json.loads(response_get_weather.content)
-        print(data)
+async def get_weather_func(city_name: str) -> str:
+    try:
+        # Make the API call
+        response = requests.get(config.weather_api.format(city=city_name), timeout=10)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+
+        # Parse JSON data
+        data = response.json()
+
+        # Validate response content
+        if 'main' not in data or 'name' not in data:
+            logging.error(f"Unexpected API response format: {data}")
+            return "Sorry, I couldn't find the weather information for this city."
+
+        # Extract relevant data
         beautiful_city_name = data['name']
         temp = round(data['main']['temp'] - 273.15)
         feels_like = round(data['main']['feels_like'] - 273.15)
-        mess = presentation(temp, feels_like, beautiful_city_name)
-        return mess
+
+        return presentation(temp, feels_like, beautiful_city_name)
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error while fetching weather data: {e}")
+        return "Sorry, there was an error fetching the weather information. Please try again later."
+
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        return "An unexpected error occurred. Please try again."
 
 
-def presentation(temp, feels_like, beautiful_city_name):
-    if temp > 0:
-        temp = f'+{str(temp)}'
-    if feels_like > 0:
-        feels_like = f'+{str(feels_like)}'
-    return f'{beautiful_city_name}\nThe temperature now {temp} degrees\nFeels like {feels_like}'
+def presentation(temp: int, feels_like: int, city_name: str) -> str:
+    temp = f'+{temp}' if temp > 0 else str(temp)
+    feels_like = f'+{feels_like}' if feels_like > 0 else str(feels_like)
+    return (f'{city_name}\n'
+            f'Temperature: {temp}°C\n'
+            f'Feels like: {feels_like}°C')
 
 
 if __name__ == "__main__":
