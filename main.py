@@ -57,11 +57,11 @@ async def get_weather_func(city_name: str) -> str:
 
     except requests.exceptions.RequestException as e:
         logging.error(f"Error while fetching weather data: {e}")
-        return "Sorry, there was an error fetching the weather information. Please try again later."
+        return "Sorry, there was an error fetching the weather information. Please try again later"
 
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
-        return "An unexpected error occurred. Please try again."
+        return "An unexpected error occurred. Please try again"
 
 
 def presentation(temp: int, feels_like: int, city_name: str) -> str:
