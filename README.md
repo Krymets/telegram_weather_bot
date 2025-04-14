@@ -40,4 +40,3 @@ We aim to create a friendly and open community. Please familiarize yourself with
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
-
