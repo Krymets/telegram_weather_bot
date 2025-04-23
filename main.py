@@ -7,68 +7,83 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
 
-# List of keywords
-keywords = ['weather', 'forecast', 'погода']
+# List of keywords to trigger weather request
+keywords = ['weather', 'forecast']
 
 
-# Function to clean text by removing punctuation and converting to lowercase
+# Utility function to clean up words (lowercase and remove punctuation)
 def clean_text(word: str) -> str:
-    return word.translate(str.maketrans('', '', ',.:;"\'')).lower()
+    return word.translate(str.maketrans('', '', ',.:;"\'!?')).lower()
 
 
 @dp.message_handler()
 async def echo(message: types.Message):
-    # Split the message text into words and clean them
     words = [clean_text(word) for word in message.text.split()]
+    if any(keyword in words for keyword in keywords):
+        city_candidates = [word for word in words if word not in keywords]
+        if not city_candidates:
+            await message.answer("Please specify a city to get the weather information.")
+            return
 
-    # Check if any of the keywords are in the message
-    for keyword in keywords:
-        if keyword in words:
-            # Remove the keyword and process the remaining words
-            other_words = [word for word in words if word != keyword]
-
-            # Call the weather function for each remaining word
-            for word in other_words:
-                response = await get_weather_func(word)
-                await message.answer(response)
+        for city in city_candidates:
+            response = await get_weather_func(city)
+            await message.answer(response)
 
 
 async def get_weather_func(city_name: str) -> str:
     try:
-        # Make the API call
         response = requests.get(config.weather_api.format(city=city_name), timeout=10)
-        response.raise_for_status()  # Raise HTTPError for bad responses
+        response.raise_for_status()
 
-        # Parse JSON data
         data = response.json()
 
-        # Validate response content
-        if 'main' not in data or 'name' not in data:
+        if 'main' not in data or 'name' not in data or 'weather' not in data:
             logging.error(f"Unexpected API response format: {data}")
-            return "Sorry, I couldn't find the weather information for this city."
+            return "Sorry, I couldn't find the weather information for that city."
 
-        # Extract relevant data
-        beautiful_city_name = data['name']
+        city = data['name']
         temp = round(data['main']['temp'] - 273.15)
         feels_like = round(data['main']['feels_like'] - 273.15)
+        description = data['weather'][0]['description'].capitalize()
+        emoji = get_weather_emoji(description)
 
-        return presentation(temp, feels_like, beautiful_city_name)
+        return format_weather(city, temp, feels_like, description, emoji)
 
     except requests.exceptions.RequestException as e:
         logging.error(f"Error while fetching weather data: {e}")
-        return "Sorry, there was an error fetching the weather information. Please try again later"
+        return "Sorry, there was an error fetching the weather information. Please try again later."
 
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
-        return "An unexpected error occurred. Please try again"
+        return "An unexpected error occurred. Please try again."
 
 
-def presentation(temp: int, feels_like: int, city_name: str) -> str:
-    temp = f'+{temp}' if temp > 0 else str(temp)
-    feels_like = f'+{feels_like}' if feels_like > 0 else str(feels_like)
-    return (f'{city_name}\n'
-            f'Temperature: {temp}°C\n'
-            f'Feels like: {feels_like}°C')
+def get_weather_emoji(description: str) -> str:
+    desc = description.lower()
+    if 'clear' in desc:
+        return '☀️'
+    elif 'cloud' in desc:
+        return '☁️'
+    elif 'rain' in desc:
+        return '🌧️'
+    elif 'snow' in desc:
+        return '❄️'
+    elif 'thunder' in desc:
+        return '⛈️'
+    elif 'fog' in desc or 'mist' in desc:
+        return '🌫️'
+    return '🌡️'
+
+
+def format_weather(city: str, temp: int, feels_like: int, description: str, emoji: str) -> str:
+    temp_str = f'+{temp}' if temp > 0 else str(temp)
+    feels_like_str = f'+{feels_like}' if feels_like > 0 else str(feels_like)
+    return (
+        f"{emoji} *Weather in {city}*\n"
+        f"Description: {description}\n"
+        f"Temperature: {temp_str}°C\n"
+        f"Feels like: {feels_like_str}°C"
+    )
 
 
 if __name__ == "__main__":
